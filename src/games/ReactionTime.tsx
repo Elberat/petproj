@@ -5,7 +5,6 @@ export const ReactionTime: React.FC<GameProps> = ({ onGameOver, lastControl }) =
   const [phase, setPhase] = useState<"wait" | "ready" | "clicked">("wait");
   const [message, setMessage] = useState("Жди зелёного…");
   const startRef = useRef<number | null>(null);
-  const [score, setScore] = useState(0);
 
   useEffect(() => {
     // случайное время 1–3 секунды
@@ -25,7 +24,6 @@ export const ReactionTime: React.FC<GameProps> = ({ onGameOver, lastControl }) =
       const reaction = end - (startRef.current ?? end);
       const scoreNum = Math.round(reaction);
 
-      setScore(scoreNum);
       setMessage(`Реакция: ${scoreNum} мс`);
       setPhase("clicked");
 
