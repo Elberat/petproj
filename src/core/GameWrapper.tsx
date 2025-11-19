@@ -1,16 +1,19 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { GameMeta, ControlId } from "./types";
 import { ControlsPad } from "./ControlsPad";
 
 type GameWrapperProps = {
   game: GameMeta;
+  isActive: boolean;
 };
 
-export const GameWrapper = ({ game }: GameWrapperProps) => {
+export const GameWrapper = ({ game, isActive }: GameWrapperProps) => {
   const [lastControl, setLastControl] = useState<ControlId | null>(null);
   const [lastScore, setLastScore] = useState<number | null>(null);
   const [bestScore, setBestScore] = useState<number | null>(null);
   const [gameKey, setGameKey] = useState(0);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [isOver, setIsOver] = useState(false);
 
   const storageKey = `best_${game.id}`;
 
@@ -24,26 +27,38 @@ export const GameWrapper = ({ game }: GameWrapperProps) => {
     }
   }, [storageKey]);
 
+  useEffect(() => {
+    if (isActive && !hasStarted) {
+      setHasStarted(true);
+    }
+  }, [isActive, hasStarted]);
+
   const handleControlPress = (control: ControlId) => {
     setLastControl(control);
-    // Сбрасываем lastControl через небольшую задержку, чтобы игра успела его обработать
-    setTimeout(() => {
+    // ВАЖНО: делаем это событием, а не постоянным состоянием
+    // Используем requestAnimationFrame для более надежного сброса
+    requestAnimationFrame(() => {
       setLastControl(null);
-    }, 100);
+    });
   };
 
-  const handleGameOver = (score: number) => {
-    setLastScore(score);
-    if (bestScore === null || score > bestScore) {
-      setBestScore(score);
-      localStorage.setItem(storageKey, score.toString());
-    }
-  };
+  const handleGameOver = useCallback(
+    (score: number) => {
+      setLastScore(score);
+      setIsOver(true);
+      if (bestScore === null || score > bestScore) {
+        setBestScore(score);
+        localStorage.setItem(storageKey, score.toString());
+      }
+    },
+    [bestScore, storageKey]
+  );
 
   const handleRestart = () => {
     setGameKey((prev) => prev + 1);
     setLastScore(null);
     setLastControl(null);
+    setIsOver(false);
   };
 
   const GameComponent = game.component;
@@ -62,77 +77,90 @@ export const GameWrapper = ({ game }: GameWrapperProps) => {
       }}
     >
       {/* Заголовок и описание */}
-      <div style={{ marginBottom: "16px", textAlign: "center" }}>
-        <h1 style={{ margin: "0 0 8px 0", fontSize: "24px", fontWeight: "bold" }}>
-          {game.title}
-        </h1>
-        <p style={{ margin: "0 0 12px 0", fontSize: "14px", opacity: 0.8 }}>
+      <header style={{ marginBottom: 8, textAlign: "center" }}>
+        <h2 style={{ margin: 0, fontSize: 20 }}>{game.title}</h2>
+        <p style={{ margin: "4px 0 0", opacity: 0.75, fontSize: 13 }}>
           {game.description}
         </p>
-        {/* Рекорды */}
-        <div
-          style={{
-            display: "flex",
-            gap: "16px",
-            justifyContent: "center",
-            fontSize: "14px",
-          }}
-        >
-          {bestScore !== null && (
-            <span>
-              Рекорд: <strong>{bestScore}</strong>
-            </span>
-          )}
-          {lastScore !== null && (
-            <span>
-              Последний: <strong>{lastScore}</strong>
-            </span>
-          )}
+        <div style={{ marginTop: 4, fontSize: 12, opacity: 0.8 }}>
+          Рекорд: {bestScore ?? 0} &nbsp; | &nbsp; Последний: {lastScore ?? 0}
         </div>
-      </div>
+      </header>
 
       {/* Контейнер игры */}
       <div
         style={{
           flex: 1,
+          borderRadius: 20,
+          border: "1px solid #27272f",
+          background:
+            "radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%)",
+          padding: 12,
+          marginBottom: 8,
+          boxShadow: "0 18px 40px rgba(0,0,0,0.6)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          minHeight: 0,
-          marginBottom: "16px",
         }}
       >
-        <div style={{ width: "100%", height: "100%" }}>
+        {hasStarted ? (
           <GameComponent
             key={gameKey}
             onGameOver={handleGameOver}
             lastControl={lastControl}
           />
-        </div>
+        ) : (
+          <div
+            style={{
+              height: "100%",
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 14,
+              opacity: 0.7,
+            }}
+          >
+            Свайпни сюда, чтобы начать игру
+          </div>
+        )}
       </div>
+
+      {/* Сообщение при проигрыше */}
+      {isOver && (
+        <div
+          style={{
+            marginTop: 4,
+            fontSize: 14,
+            textAlign: "center",
+            color: "#f97316",
+          }}
+        >
+          Ты проиграл. Попробуй ещё раз!
+        </div>
+      )}
 
       {/* Блок управления */}
       <ControlsPad controls={game.controls} onPress={handleControlPress} />
 
       {/* Кнопка перезапуска */}
-      <div style={{ display: "flex", justifyContent: "center", marginTop: "16px" }}>
-        <button
-          style={{
-            padding: "12px 24px",
-            border: "2px solid #fff",
-            borderRadius: "8px",
-            background: "rgba(255, 255, 255, 0.1)",
-            color: "#fff",
-            fontSize: "16px",
-            fontWeight: "bold",
-            cursor: "pointer",
-            userSelect: "none",
-          }}
-          onClick={handleRestart}
-        >
-          Играть ещё раз
-        </button>
-      </div>
+      <button
+        onClick={handleRestart}
+        style={{
+          marginTop: 8,
+          padding: "10px 14px",
+          borderRadius: 999,
+          border: "1px solid #4b5563",
+          background: "rgba(15,23,42,0.9)",
+          color: "#e5e7eb",
+          fontSize: 14,
+          fontWeight: 600,
+          width: "100%",
+          cursor: "pointer",
+        }}
+      >
+        Играть ещё раз
+      </button>
     </div>
   );
 };

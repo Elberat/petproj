@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import type { GameProps } from "../core/types";
+import { useEffect, useState, useRef } from "react";
+import type { GameProps, ControlId } from "../core/types";
 
 type ColorOption = {
   name: string; // текст
@@ -24,6 +24,7 @@ export const ColorMatch: React.FC<GameProps> = ({ onGameOver, lastControl }) => 
   const [colorIndex, setColorIndex] = useState(0); // какой цвет текста
 
   const [message, setMessage] = useState<string | null>(null);
+  const processedControlRef = useRef<ControlId | null>(null);
 
   const generateRound = () => {
     const w = Math.floor(Math.random() * COLORS.length);
@@ -49,9 +50,27 @@ export const ColorMatch: React.FC<GameProps> = ({ onGameOver, lastControl }) => 
 
   // обработка нажатий left/right
   useEffect(() => {
-    if (isOver || !lastControl) return;
-    if (lastControl !== "left" && lastControl !== "right") return;
-
+    if (isOver) return;
+    
+    // Если lastControl стал null - сбрасываем флаг обработки
+    if (lastControl === null) {
+      processedControlRef.current = null;
+      return;
+    }
+    
+    // Обрабатываем только left/right
+    if (lastControl !== "left" && lastControl !== "right") {
+      return;
+    }
+    
+    // Если это значение уже обработано - пропускаем
+    if (processedControlRef.current === lastControl) {
+      return;
+    }
+    
+    // Обрабатываем новое значение
+    processedControlRef.current = lastControl;
+    
     const isMatch = wordIndex === colorIndex;
     const userSaysMatch = lastControl === "right";
 
@@ -65,14 +84,13 @@ export const ColorMatch: React.FC<GameProps> = ({ onGameOver, lastControl }) => 
       const finalScore = (correct ? score + 1 : score);
       setIsOver(true);
       onGameOver(finalScore);
-      return;
+    } else {
+      setRound((r) => r + 1);
+      generateRound();
+
+      const timer = setTimeout(() => setMessage(null), 500);
+      return () => clearTimeout(timer);
     }
-
-    setRound((r) => r + 1);
-    generateRound();
-
-    const timer = setTimeout(() => setMessage(null), 500);
-    return () => clearTimeout(timer);
   }, [lastControl, isOver, wordIndex, colorIndex, round, score, onGameOver]);
 
   const color = COLORS[colorIndex];

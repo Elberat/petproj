@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { GameProps } from "../core/types";
+import type { GameProps, ControlId } from "../core/types";
 
 type Block = {
   id: number;
@@ -18,16 +18,29 @@ export const DodgeBlocks: React.FC<GameProps> = ({ onGameOver, lastControl }) =>
 
   // счётчик id для блоков
   const nextIdRef = useRef(0);
+  const processedControlRef = useRef<ControlId | null>(null);
 
   // обработка управления
   useEffect(() => {
-    if (isOver || !lastControl) return;
-
+    if (isOver) return;
+    
+    // Если lastControl стал null - сбрасываем флаг обработки
+    if (lastControl === null) {
+      processedControlRef.current = null;
+      return;
+    }
+    
+    // Если это значение уже обработано - пропускаем
+    if (processedControlRef.current === lastControl) {
+      return;
+    }
+    
+    // Обрабатываем новое значение
+    processedControlRef.current = lastControl;
+    
     if (lastControl === "left") {
       setPlayerX((x) => Math.max(0, x - 1));
-    }
-
-    if (lastControl === "right") {
+    } else if (lastControl === "right") {
       setPlayerX((x) => Math.min(GRID_WIDTH - 1, x + 1));
     }
   }, [lastControl, isOver]);

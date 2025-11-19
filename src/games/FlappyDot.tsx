@@ -22,7 +22,6 @@ export const FlappyDot: React.FC<GameProps> = ({ onGameOver, lastControl }) => {
   const [playerY, setPlayerY] = useState(FIELD_HEIGHT / 2);
   const [velocity, setVelocity] = useState(0);
   const [pipes, setPipes] = useState<Pipe[]>([]);
-  const [frame, setFrame] = useState(0);
   const [score, setScore] = useState(0);
   const [isOver, setIsOver] = useState(false);
   const [nextId, setNextId] = useState(1);
@@ -48,8 +47,6 @@ export const FlappyDot: React.FC<GameProps> = ({ onGameOver, lastControl }) => {
     if (isOver) return;
 
     const id = setInterval(() => {
-      setFrame((f) => f + 1);
-
       // двигаем птичку
       setVelocity((v) => v + GRAVITY);
       setPlayerY((y) => y + velocity);

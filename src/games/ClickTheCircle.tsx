@@ -103,11 +103,10 @@ export const ClickTheCircle: React.FC<GameProps> = ({ onGameOver, lastControl })
           width: `${circleSize}px`,
           height: `${circleSize}px`,
           borderRadius: "50%",
-          background: "#4CAF50",
+          background: "#ffffff",
           cursor: "pointer",
           border: "3px solid #fff",
-          boxShadow: "0 0 20px rgba(76, 175, 80, 0.5)",
-          transition: "transform 0.1s",
+          boxShadow: "0 0 20px rgba(255, 255, 255, 0.5)",
         }}
         onMouseDown={(e) => {
           e.preventDefault();

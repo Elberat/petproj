@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import type { GameProps } from "../core/types";
+import { useEffect, useState, useRef } from "react";
+import type { GameProps, ControlId } from "../core/types";
 
 type Block = {
   id: number;
@@ -36,6 +36,7 @@ export const StackTower: React.FC<GameProps> = ({ onGameOver, lastControl }) => 
   const [score, setScore] = useState(0);
   const [nextId, setNextId] = useState(1);
   const [isOver, setIsOver] = useState(false);
+  const processedControlRef = useRef<ControlId | null>(null);
 
   // движение верхнего блока
   useEffect(() => {
@@ -60,9 +61,27 @@ export const StackTower: React.FC<GameProps> = ({ onGameOver, lastControl }) => 
 
   // обработка ACTION – "роняем" блок
   useEffect(() => {
-    if (isOver || !lastControl) return;
-    if (lastControl !== "action") return;
-
+    if (isOver) return;
+    
+    // Если lastControl стал null - сбрасываем флаг обработки
+    if (lastControl === null) {
+      processedControlRef.current = null;
+      return;
+    }
+    
+    // Обрабатываем только "action"
+    if (lastControl !== "action") {
+      return;
+    }
+    
+    // Если это значение уже обработано - пропускаем
+    if (processedControlRef.current === "action") {
+      return;
+    }
+    
+    // Обрабатываем новое значение
+    processedControlRef.current = "action";
+    
     setBlocks((prev) => {
       const prevTop = prev[prev.length - 1];
 
