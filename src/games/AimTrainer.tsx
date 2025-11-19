@@ -88,8 +88,7 @@ export const AimTrainer: React.FC<GameProps> = ({ onGameOver }) => {
         >
           {!isOver && (
             <div
-              onClick={handleHit}
-              onTouchStart={(e) => {
+              onPointerDown={(e) => {
                 e.preventDefault();
                 handleHit();
               }}
@@ -104,6 +103,7 @@ export const AimTrainer: React.FC<GameProps> = ({ onGameOver }) => {
                 background: "#f97316",
                 boxShadow: "0 0 12px rgba(249,115,22,0.9)",
                 border: "3px solid #fff",
+                cursor: "pointer",
               }}
             />
           )}

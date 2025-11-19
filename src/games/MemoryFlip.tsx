@@ -159,7 +159,10 @@ export const MemoryFlip: React.FC<GameProps> = ({ onGameOver }) => {
             return (
               <button
                 key={card.id}
-                onClick={() => handleCardClick(card.id)}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  handleCardClick(card.id);
+                }}
                 style={{
                   height: 60,
                   borderRadius: 10,
@@ -185,7 +188,10 @@ export const MemoryFlip: React.FC<GameProps> = ({ onGameOver }) => {
             }}
           >
             <button
-              onClick={handleRestart}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                handleRestart();
+              }}
               style={{
                 padding: "6px 12px",
                 borderRadius: 999,

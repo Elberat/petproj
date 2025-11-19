@@ -6,9 +6,11 @@ type ControlsPadProps = {
 };
 
 export const ControlsPad = ({ controls, onPress }: ControlsPadProps) => {
-  const handlePress = (control: ControlId) => {
-    onPress(control);
-  };
+  const handlePressPointer = (control: ControlId) => 
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      onPress(control);
+    };
 
   const buttonStyle: React.CSSProperties = {
     minHeight: "48px",
@@ -43,14 +45,7 @@ export const ControlsPad = ({ controls, onPress }: ControlsPadProps) => {
             height: "80px",
             fontSize: "20px",
           }}
-          onTouchStart={(e) => {
-            e.preventDefault();
-            handlePress(controls[0]);
-          }}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            handlePress(controls[0]);
-          }}
+          onPointerDown={handlePressPointer(controls[0])}
         >
           {controls[0] === "tap" ? "TAP" : "ACTION"}
         </button>
@@ -77,14 +72,7 @@ export const ControlsPad = ({ controls, onPress }: ControlsPadProps) => {
             height: "80px",
             fontSize: "20px",
           }}
-          onTouchStart={(e) => {
-            e.preventDefault();
-            handlePress("left");
-          }}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            handlePress("left");
-          }}
+          onPointerDown={handlePressPointer("left")}
         >
           ← LEFT
         </button>
@@ -96,14 +84,7 @@ export const ControlsPad = ({ controls, onPress }: ControlsPadProps) => {
             height: "80px",
             fontSize: "20px",
           }}
-          onTouchStart={(e) => {
-            e.preventDefault();
-            handlePress("right");
-          }}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            handlePress("right");
-          }}
+          onPointerDown={handlePressPointer("right")}
         >
           RIGHT →
         </button>
@@ -136,14 +117,7 @@ export const ControlsPad = ({ controls, onPress }: ControlsPadProps) => {
               width: "80px",
               height: "60px",
             }}
-            onTouchStart={(e) => {
-              e.preventDefault();
-              handlePress("up");
-            }}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              handlePress("up");
-            }}
+            onPointerDown={handlePressPointer("up")}
           >
             ↑
           </button>
@@ -156,14 +130,7 @@ export const ControlsPad = ({ controls, onPress }: ControlsPadProps) => {
                 width: "80px",
                 height: "60px",
               }}
-              onTouchStart={(e) => {
-                e.preventDefault();
-                handlePress("left");
-              }}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                handlePress("left");
-              }}
+              onPointerDown={handlePressPointer("left")}
             >
               ←
             </button>
@@ -175,14 +142,7 @@ export const ControlsPad = ({ controls, onPress }: ControlsPadProps) => {
                 width: "80px",
                 height: "60px",
               }}
-              onTouchStart={(e) => {
-                e.preventDefault();
-                handlePress("down");
-              }}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                handlePress("down");
-              }}
+              onPointerDown={handlePressPointer("down")}
             >
               ↓
             </button>
@@ -194,14 +154,7 @@ export const ControlsPad = ({ controls, onPress }: ControlsPadProps) => {
                 width: "80px",
                 height: "60px",
               }}
-              onTouchStart={(e) => {
-                e.preventDefault();
-                handlePress("right");
-              }}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                handlePress("right");
-              }}
+              onPointerDown={handlePressPointer("right")}
             >
               →
             </button>
@@ -229,14 +182,7 @@ export const ControlsPad = ({ controls, onPress }: ControlsPadProps) => {
             ...buttonStyle,
             padding: "12px 24px",
           }}
-          onTouchStart={(e) => {
-            e.preventDefault();
-            handlePress(control);
-          }}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            handlePress(control);
-          }}
+          onPointerDown={handlePressPointer(control)}
         >
           {control.toUpperCase()}
         </button>

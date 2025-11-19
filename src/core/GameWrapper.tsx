@@ -145,7 +145,10 @@ export const GameWrapper = ({ game, isActive }: GameWrapperProps) => {
 
       {/* Кнопка перезапуска */}
       <button
-        onClick={handleRestart}
+        onPointerDown={(e) => {
+          e.preventDefault();
+          handleRestart();
+        }}
         style={{
           marginTop: 8,
           padding: "10px 14px",

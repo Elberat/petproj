@@ -1,89 +1,39 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { GameProps } from "../core/types";
 
-type GameState = "waiting" | "ready" | "tooEarly" | "finished";
-
 export const ReactionTime: React.FC<GameProps> = ({ onGameOver, lastControl }) => {
-  const [state, setState] = useState<GameState>("waiting");
-  const [reactionTime, setReactionTime] = useState<number | null>(null);
-  const [round, setRound] = useState(0);
-  const [scores, setScores] = useState<number[]>([]);
-  const timeoutRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number | null>(null);
-  const roundRef = useRef(0);
-  const scoresRef = useRef<number[]>([]);
-  const maxRounds = 5;
+  const [phase, setPhase] = useState<"wait" | "ready" | "clicked">("wait");
+  const [message, setMessage] = useState("Жди зелёного…");
+  const startRef = useRef<number | null>(null);
+  const [score, setScore] = useState(0);
 
   useEffect(() => {
-    if (state === "waiting") {
-      // Случайная задержка от 1 до 5 секунд
-      const delay = 1000 + Math.random() * 4000;
-      timeoutRef.current = window.setTimeout(() => {
-        setState("ready");
-        startTimeRef.current = Date.now();
-      }, delay);
-    }
+    // случайное время 1–3 секунды
+    const timeout = setTimeout(() => {
+      setPhase("ready");
+      setMessage("ЖМИ!");
+      startRef.current = performance.now();
+    }, 1000 + Math.random() * 2000);
 
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [state, round]);
+    return () => clearTimeout(timeout);
+  }, []);
 
   useEffect(() => {
-    if (lastControl === "tap") {
-      if (state === "waiting") {
-        // Нажали слишком рано
-        setState("tooEarly");
-        const timeoutId = window.setTimeout(() => {
-          roundRef.current += 1;
-          setRound(roundRef.current);
-          setState("waiting");
-        }, 1500);
-        return () => clearTimeout(timeoutId);
-      } else if (state === "ready" && startTimeRef.current) {
-        // Правильное нажатие
-        const time = Date.now() - startTimeRef.current;
-        setReactionTime(time);
-        const score = Math.max(0, 1000 - time);
-        scoresRef.current = [...scoresRef.current, score];
-        setScores(scoresRef.current);
-        setState("finished");
-        
-        const timeoutId = window.setTimeout(() => {
-          if (roundRef.current + 1 < maxRounds) {
-            roundRef.current += 1;
-            setRound(roundRef.current);
-            setState("waiting");
-            setReactionTime(null);
-          } else {
-            // Игра завершена
-            const totalScore = scoresRef.current.reduce((sum, s) => sum + s, 0);
-            onGameOver(totalScore);
-          }
-        }, 2000);
-        return () => clearTimeout(timeoutId);
-      }
-    }
-  }, [lastControl, state, onGameOver]);
+    if (!lastControl) return;
+    if (phase === "ready") {
+      const end = performance.now();
+      const reaction = end - (startRef.current ?? end);
+      const scoreNum = Math.round(reaction);
 
-  const getBackgroundColor = () => {
-    if (state === "waiting") return "#FF5722";
-    if (state === "ready") return "#4CAF50";
-    if (state === "tooEarly") return "#FFC107";
-    return "#2196F3";
-  };
+      setScore(scoreNum);
+      setMessage(`Реакция: ${scoreNum} мс`);
+      setPhase("clicked");
 
-  const getMessage = () => {
-    if (state === "waiting") return "Жди...";
-    if (state === "ready") return "ЖМИ!";
-    if (state === "tooEarly") return "Слишком рано!";
-    if (reactionTime !== null) {
-      return `Время реакции: ${reactionTime}мс`;
+      setTimeout(() => {
+        onGameOver(Math.max(1, 300 - Math.floor(scoreNum))); 
+      }, 700);
     }
-    return "Готово";
-  };
+  }, [lastControl, phase, onGameOver]);
 
   return (
     <div
@@ -91,38 +41,28 @@ export const ReactionTime: React.FC<GameProps> = ({ onGameOver, lastControl }) =
         width: "100%",
         height: "100%",
         display: "flex",
-        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        background: getBackgroundColor(),
-        borderRadius: "8px",
-        transition: "background 0.3s",
       }}
     >
       <div
         style={{
-          fontSize: "48px",
-          fontWeight: "bold",
-          marginBottom: "24px",
+          width: 260,
+          height: 220,
+          borderRadius: 16,
+          border: "1px solid #333",
+          background: "#020617",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 22,
+          color: phase === "wait" ? "#f87171" : phase === "ready" ? "#4ade80" : "#60a5fa",
           textAlign: "center",
+          padding: 10,
         }}
       >
-        {getMessage()}
+        {message}
       </div>
-      {state === "finished" && reactionTime !== null && (
-        <div style={{ fontSize: "24px", marginBottom: "16px" }}>
-          Очки: {Math.max(0, 1000 - reactionTime)}
-        </div>
-      )}
-      <div style={{ fontSize: "18px", opacity: 0.9 }}>
-        Раунд {round + 1} / {maxRounds}
-      </div>
-      {scores.length > 0 && (
-        <div style={{ marginTop: "24px", fontSize: "16px" }}>
-          Средний результат: {Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)}
-        </div>
-      )}
     </div>
   );
 };
-

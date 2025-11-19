@@ -107,7 +107,10 @@ export const NumberRush: React.FC<GameProps> = ({ onGameOver }) => {
             return (
               <button
                 key={num}
-                onClick={() => handleClick(num)}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  handleClick(num);
+                }}
                 style={{
                   height: 52,
                   borderRadius: 10,
@@ -138,7 +141,10 @@ export const NumberRush: React.FC<GameProps> = ({ onGameOver }) => {
             }}
           >
             <button
-              onClick={handleRestart}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                handleRestart();
+              }}
               style={{
                 padding: "6px 12px",
                 borderRadius: 999,
